@@ -2,17 +2,23 @@ import * as THREE from 'three'
 
 // Defining Constants
 const vehicleColors = [0xa52523, 0xbdbdb638, 0x0da2ff, 0xf05e16, 0xff69b4]
-const lawnGreen = '#67C240'
-const trackColor = '#546E90'
-const edgeColor = '#725F48'
 const treeCrownColor = 0x498c2c
 const treeTrunkColor = 0x4b3f2f
 const trackRadius = 100
 const trackWidth = 25
 const innerTrackRadius = trackRadius - trackWidth
 const outerTrackRadius = trackRadius + trackWidth
+let ready
+const playerAngleInitial = Math.PI
+let playerAngleMoved
+const speed = 0.0017
+let score
+let otherVehicles = []
+let lastTimeStamp
+let accelerate = false
+let decelerate = false
 
-const treeTrunkGeometry = new THREE.BoxGeometry(15, 15, 30)
+const treeTrunkGeometry = new THREE.BoxGeometry(15, 15, 75)
 const treeTrunkMaterial = new THREE.MeshLambertMaterial({
   color: treeTrunkColor,
 })
@@ -28,12 +34,6 @@ playerCar.position.x = -trackRadius
 playerCar.position.y = 0
 playerCar.rotation.z = Math.PI / 2
 scene.add(playerCar)
-
-const truck = Truck()
-truck.position.x = -trackRadius
-truck.position.y = 60
-truck.rotation.z = Math.PI / 3.5
-scene.add(truck)
 
 const treesLeft = []
 const numberTreesLeft = 100
@@ -111,6 +111,11 @@ camera.lookAt(0, 0, 0)
 
 renderMap(cameraWidth, cameraHeight * 2)
 
+// const POVCamera = new THREE.PerspectiveCamera(75, aspectRatio, 0.1, 1000)
+// POVCamera.position.set(-trackRadius, -20, 15)
+// POVCamera.up.set(0, 0, 1)
+// POVCamera.lookAt(-trackRadius + 10, 40, 0)
+
 // Set up renderer
 const renderer = new THREE.WebGLRenderer({
   antialias: true,
@@ -118,9 +123,163 @@ const renderer = new THREE.WebGLRenderer({
 })
 renderer.setSize(window.innerWidth, window.innerHeight)
 renderer.shadowMap.enabled = true
-renderer.render(scene, camera)
-
 document.body.appendChild(renderer.domElement)
+
+reset()
+
+// Animating the Game Logic
+function reset() {
+  // Reset Position and Score
+  playerAngleMoved = 0
+  movePlayerCar(0)
+  score = 0
+  lastTimeStamp = undefined
+
+  // Remove Other Vehicles
+  otherVehicles.forEach((vehicle) => {
+    scene.remove(vehicle.mesh)
+  })
+  otherVehicles = []
+
+  renderer.render(scene, camera)
+  ready = true
+}
+function startGame() {
+  if (ready) {
+    ready = false
+    renderer.setAnimationLoop(animation)
+  }
+}
+
+window.addEventListener('keydown', function (event) {
+  if (event.key == 'ArrowUp') {
+    startGame()
+    accelerate = true
+    return
+  }
+
+  if (event.key == 'ArrowDown') {
+    decelerate = true
+    return
+  }
+
+  if (event.key == 'R' || event.key == 'r') {
+    reset()
+    return
+  }
+})
+
+window.addEventListener('keyup', function (event) {
+  if (event.key == 'ArrowUp') {
+    accelerate = false
+    return
+  }
+
+  if (event.key == 'ArrowDown') {
+    decelerate = false
+    return
+  }
+})
+
+function animation(timestamp) {
+  if (!lastTimeStamp) {
+    lastTimeStamp = timestamp
+    return
+  }
+
+  const timeDelta = timestamp - lastTimeStamp
+
+  movePlayerCar(timeDelta)
+
+  const laps = Math.floor(Math.abs(playerAngleMoved) / (Math.PI * 2))
+
+  if (laps != score) {
+    score = laps
+  }
+
+  // Add a New Element Every 2nd Lap
+  if (otherVehicles.length < (laps + 1) / 2) {
+    addVehicle()
+  }
+
+  moveOtherVehicles(timeDelta)
+
+  renderer.render(scene, camera)
+  lastTimeStamp = timestamp
+}
+
+function movePlayerCar(timeDelta) {
+  const playerSpeed = getPlayerSpeed()
+  playerAngleMoved -= playerSpeed * timeDelta
+
+  const totalPlayerAngle = playerAngleInitial + playerAngleMoved
+
+  const playerX = Math.cos(totalPlayerAngle) * trackRadius
+  const playerY = Math.sin(totalPlayerAngle) * trackRadius
+
+  playerCar.position.x = playerX
+  playerCar.position.y = playerY
+
+  playerCar.rotation.z = totalPlayerAngle - Math.PI / 2
+}
+
+function getPlayerSpeed() {
+  if (accelerate) {
+    return speed * 2
+  }
+  if (decelerate) {
+    return speed * 0.5
+  }
+  return speed
+}
+
+function addVehicle() {
+  const vehicleTypes = ['car', 'truck']
+
+  const type = pickRandom(vehicleTypes)
+  const mesh = type == 'car' ? Car() : Truck()
+  scene.add(mesh)
+
+  const clockwise = Math.random() >= 0.5
+  const angle = clockwise ? Math.PI / 2 : -Math.PI / 2
+
+  const speed = getVehicleSpeed(type)
+
+  otherVehicles.push({ mesh, type, clockwise, angle, speed })
+}
+
+function getVehicleSpeed(type) {
+  if (type == 'car') {
+    const minimumSpeed = 1
+    const maximumSpeed = 2
+    return minimumSpeed + Math.random() * (maximumSpeed - minimumSpeed)
+  }
+  if (type == 'truck') {
+    const minimumSpeed = 0.6
+    const maximumSpeed = 1.5
+    return minimumSpeed + Math.random() * (maximumSpeed - minimumSpeed)
+  }
+}
+
+function moveOtherVehicles(timeDelta) {
+  otherVehicles.forEach((vehicle) => {
+    if (vehicle.clockwise) {
+      vehicle.angle -= speed * timeDelta * vehicle.speed
+    } else {
+      vehicle.angle += speed * timeDelta * vehicle.speed
+    }
+
+    const vehicleX = Math.cos(vehicle.angle) * trackRadius
+    const vehicleY = Math.sin(vehicle.angle) * trackRadius
+
+    const rotation =
+      vehicle.angle + (vehicle.clockwise ? -Math.PI / 2 : Math.PI / 2)
+
+    vehicle.mesh.position.x = vehicleX
+    vehicle.mesh.position.y = vehicleY
+    vehicle.mesh.rotation.z = rotation
+  })
+}
 
 // Random Number Generator
 function getRandomNumber(min, max) {
