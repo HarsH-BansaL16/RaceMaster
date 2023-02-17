@@ -12,12 +12,13 @@ let ready
 const playerAngleInitial = Math.PI
 let playerAngleMoved
 let playerCarRadius = trackRadius
-const speed = 0.0017
+const speed = 0.0005
 let score
 let otherVehicles = []
 let lastTimeStamp
 let accelerate = false
 let decelerate = false
+let cameraType = 0
 
 const treeTrunkGeometry = new THREE.BoxGeometry(15, 15, 75)
 const treeTrunkMaterial = new THREE.MeshLambertMaterial({
@@ -112,10 +113,11 @@ camera.lookAt(0, 0, 0)
 
 renderMap(cameraWidth, cameraHeight * 2)
 
-// const POVCamera = new THREE.PerspectiveCamera(75, aspectRatio, 0.1, 1000)
-// POVCamera.position.set(-trackRadius, -20, 15)
-// POVCamera.up.set(0, 0, 1)
-// POVCamera.lookAt(-trackRadius + 10, 40, 0)
+const POVCamera = new THREE.PerspectiveCamera(110, aspectRatio, 0.1, 1000)
+POVCamera.up.set(0, 0, 1)
+
+const carCamera = new THREE.PerspectiveCamera(110, aspectRatio, 0.1, 1000)
+carCamera.up.set(0, 0, 1)
 
 // Set up renderer
 const renderer = new THREE.WebGLRenderer({
@@ -142,7 +144,7 @@ function reset() {
   })
   otherVehicles = []
 
-  renderer.render(scene, camera)
+  renderer.render(scene, selectCamera(cameraType))
   ready = true
 }
 function startGame() {
@@ -173,6 +175,16 @@ window.addEventListener('keydown', function (event) {
     playerCarRadius -= 3
     playerCarRadius = Math.max(playerCarRadius, innerTrackRadius + 5)
     return
+  }
+
+  if (event.key == '1') {
+    // Top View
+    cameraType = 1
+  }
+
+  if (event.key == '2') {
+    // Pov Camera
+    cameraType = 2
   }
 
   if (event.key == 'R' || event.key == 'r') {
@@ -214,8 +226,17 @@ function animation(timestamp) {
 
   moveOtherVehicles(timeDelta)
 
-  renderer.render(scene, camera)
+  renderer.render(scene, selectCamera(cameraType))
   lastTimeStamp = timestamp
+}
+function selectCamera(cameraType) {
+  if (cameraType == 2) {
+    return POVCamera
+  }
+  if (cameraType == 3) {
+    return carCamera
+  }
+  return camera
 }
 function movePlayerCar(timeDelta) {
   const playerSpeed = getPlayerSpeed()
@@ -230,6 +251,21 @@ function movePlayerCar(timeDelta) {
   playerCar.position.y = playerY
 
   playerCar.rotation.z = totalPlayerAngle - Math.PI / 2
+
+  POVCamera.position.set(
+    playerX - 0.2 * Math.cos(totalPlayerAngle),
+    playerY - 0.2 * Math.sin(totalPlayerAngle),
+    15
+  )
+  POVCamera.lookAt(
+    playerX +
+      0.2 *
+        Math.cos(totalPlayerAngle - Math.PI / 2 - Math.PI / 3 - Math.PI / 7),
+    playerY +
+      0.2 *
+        Math.sin(totalPlayerAngle - Math.PI / 2 - Math.PI / 3 - Math.PI / 7),
+    15
+  )
 }
 function getPlayerSpeed() {
   if (accelerate) {
@@ -585,5 +621,5 @@ window.addEventListener('resize', () => {
 
   // Reset renderer
   renderer.setSize(window.innerWidth, window.innerHeight)
-  renderer.render(scene, camera)
+  renderer.render(scene, selectCamera(cameraType))
 })
