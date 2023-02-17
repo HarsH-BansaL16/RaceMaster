@@ -4,13 +4,14 @@ import * as THREE from 'three'
 const vehicleColors = [0xa52523, 0xbdbdb638, 0x0da2ff, 0xf05e16, 0xff69b4]
 const treeCrownColor = 0x498c2c
 const treeTrunkColor = 0x4b3f2f
-const trackRadius = 100
-const trackWidth = 25
+const trackRadius = 120
+const trackWidth = 50
 const innerTrackRadius = trackRadius - trackWidth
 const outerTrackRadius = trackRadius + trackWidth
 let ready
 const playerAngleInitial = Math.PI
 let playerAngleMoved
+let playerCarRadius = trackRadius
 const speed = 0.0017
 let score
 let otherVehicles = []
@@ -60,7 +61,7 @@ const numberTreesUp = 30
 for (let i = 0; i < numberTreesUp; i++) {
   treesUp[i] = Tree()
   treesUp[i].position.x = getRandomNumber(-100, 100)
-  treesUp[i].position.y = getRandomNumber(150, 500)
+  treesUp[i].position.y = getRandomNumber(180, 500)
   treesUp[i].position.z = 0
   scene.add(treesUp[i])
 }
@@ -70,7 +71,7 @@ const numberTreesDown = 30
 for (let i = 0; i < numberTreesDown; i++) {
   treesDown[i] = Tree()
   treesDown[i].position.x = getRandomNumber(-100, 100)
-  treesDown[i].position.y = getRandomNumber(-150, -500)
+  treesDown[i].position.y = getRandomNumber(-180, -500)
   treesDown[i].position.z = 0
   scene.add(treesDown[i])
 }
@@ -150,7 +151,6 @@ function startGame() {
     renderer.setAnimationLoop(animation)
   }
 }
-
 window.addEventListener('keydown', function (event) {
   if (event.key == 'ArrowUp') {
     startGame()
@@ -163,12 +163,23 @@ window.addEventListener('keydown', function (event) {
     return
   }
 
+  if (event.key == 'ArrowLeft') {
+    playerCarRadius += 3
+    playerCarRadius = Math.min(playerCarRadius, outerTrackRadius - 5)
+    return
+  }
+
+  if (event.key == 'ArrowRight') {
+    playerCarRadius -= 3
+    playerCarRadius = Math.max(playerCarRadius, innerTrackRadius + 5)
+    return
+  }
+
   if (event.key == 'R' || event.key == 'r') {
     reset()
     return
   }
 })
-
 window.addEventListener('keyup', function (event) {
   if (event.key == 'ArrowUp') {
     accelerate = false
@@ -180,7 +191,6 @@ window.addEventListener('keyup', function (event) {
     return
   }
 })
-
 function animation(timestamp) {
   if (!lastTimeStamp) {
     lastTimeStamp = timestamp
@@ -197,8 +207,8 @@ function animation(timestamp) {
     score = laps
   }
 
-  // Add a New Element Every 2nd Lap
-  if (otherVehicles.length < (laps + 1) / 2) {
+  // Add a New Element Every 3nd Lap
+  if (otherVehicles.length < (laps + 1) / 3) {
     addVehicle()
   }
 
@@ -207,22 +217,20 @@ function animation(timestamp) {
   renderer.render(scene, camera)
   lastTimeStamp = timestamp
 }
-
 function movePlayerCar(timeDelta) {
   const playerSpeed = getPlayerSpeed()
   playerAngleMoved -= playerSpeed * timeDelta
 
   const totalPlayerAngle = playerAngleInitial + playerAngleMoved
 
-  const playerX = Math.cos(totalPlayerAngle) * trackRadius
-  const playerY = Math.sin(totalPlayerAngle) * trackRadius
+  const playerX = Math.cos(totalPlayerAngle) * playerCarRadius
+  const playerY = Math.sin(totalPlayerAngle) * playerCarRadius
 
   playerCar.position.x = playerX
   playerCar.position.y = playerY
 
   playerCar.rotation.z = totalPlayerAngle - Math.PI / 2
 }
-
 function getPlayerSpeed() {
   if (accelerate) {
     return speed * 2
@@ -232,7 +240,6 @@ function getPlayerSpeed() {
   }
   return speed
 }
-
 function addVehicle() {
   const vehicleTypes = ['car', 'truck']
 
@@ -245,22 +252,22 @@ function addVehicle() {
 
   const speed = getVehicleSpeed(type)
 
-  otherVehicles.push({ mesh, type, clockwise, angle, speed })
-}
+  const pathRadius = getRandomNumber(80, 160)
 
+  otherVehicles.push({ mesh, type, clockwise, angle, speed, pathRadius })
+}
 function getVehicleSpeed(type) {
   if (type == 'car') {
-    const minimumSpeed = 1
-    const maximumSpeed = 2
-    return minimumSpeed + Math.random() * (maximumSpeed - minimumSpeed)
-  }
-  if (type == 'truck') {
-    const minimumSpeed = 0.6
+    const minimumSpeed = 0.8
     const maximumSpeed = 1.5
     return minimumSpeed + Math.random() * (maximumSpeed - minimumSpeed)
   }
+  if (type == 'truck') {
+    const minimumSpeed = 0.4
+    const maximumSpeed = 1.2
+    return minimumSpeed + Math.random() * (maximumSpeed - minimumSpeed)
+  }
 }
-
 function moveOtherVehicles(timeDelta) {
   otherVehicles.forEach((vehicle) => {
     if (vehicle.clockwise) {
@@ -269,8 +276,8 @@ function moveOtherVehicles(timeDelta) {
       vehicle.angle += speed * timeDelta * vehicle.speed
     }
 
-    const vehicleX = Math.cos(vehicle.angle) * trackRadius
-    const vehicleY = Math.sin(vehicle.angle) * trackRadius
+    const vehicleX = Math.cos(vehicle.angle) * vehicle.pathRadius
+    const vehicleY = Math.sin(vehicle.angle) * vehicle.pathRadius
 
     const rotation =
       vehicle.angle + (vehicle.clockwise ? -Math.PI / 2 : Math.PI / 2)
@@ -371,7 +378,7 @@ function Truck() {
   frontWheel.position.x = 38
   truck.add(frontWheel)
 
-  truck.scale.set(0.5, 0.5, 0.5)
+  truck.scale.set(0.35, 0.35, 0.35)
 
   return truck
 }
@@ -528,7 +535,7 @@ function getOuterField(mapWidth, mapHeight) {
 
   field.lineTo(0, -mapHeight / 2)
   field.lineTo(0, -trackRadius)
-  field.absarc(0, 0, outerTrackRadius, 0, Math.PI * 2, true)
+  field.absarc(0, 0, outerTrackRadius + 2, 0, Math.PI * 2, true)
   field.lineTo(0, -mapHeight / 2)
   field.lineTo(mapWidth / 2, -mapHeight / 2)
   field.lineTo(mapWidth / 2, mapHeight / 2)
