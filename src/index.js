@@ -1,10 +1,19 @@
 import * as THREE from 'three'
 
-const vehicleColors = [0xa52523, 0xbdbdb638, 0x78b14b, 0x0da2ff, 0xf05e16]
+// Defining Constants
+const vehicleColors = [0xa52523, 0xbdbdb638, 0x0da2ff, 0xf05e16, 0xff69b4]
+const trackRadius = 100
+const trackWidth = 25
+const innerTrackRadius = trackRadius - trackWidth
+const outerTrackRadius = trackRadius + trackWidth
 
+// Setting up the Scene
 const scene = new THREE.Scene()
 
 const playerCar = Car()
+playerCar.position.x = -trackRadius
+playerCar.position.y = 0
+playerCar.rotation.z = Math.PI / 2
 scene.add(playerCar)
 
 // Set up Lights
@@ -17,7 +26,7 @@ scene.add(dirLight)
 
 // Set up Camera
 const aspectRatio = window.innerWidth / window.innerHeight
-const cameraWidth = 150
+const cameraWidth = 960
 const cameraHeight = cameraWidth / aspectRatio
 
 const camera = new THREE.OrthographicCamera(
@@ -29,9 +38,10 @@ const camera = new THREE.OrthographicCamera(
   1000
 )
 
-camera.position.set(200, -200, 300)
-camera.up.set(0, 0, 1)
+camera.position.set(0, -210, 300)
 camera.lookAt(0, 0, 0)
+
+renderMap(cameraWidth, cameraHeight * 2)
 
 // Set up renderer
 const renderer = new THREE.WebGLRenderer({ antialias: true })
@@ -40,6 +50,7 @@ renderer.render(scene, camera)
 
 document.body.appendChild(renderer.domElement)
 
+// Rendering the Car
 function Car() {
   const car = new THREE.Group()
 
@@ -82,6 +93,8 @@ function Car() {
   cabin.position.x = -6
   cabin.position.z = 25.5
   car.add(cabin)
+
+  car.scale.set(0.3, 0.3, 0.3)
 
   return car
 }
@@ -129,3 +142,95 @@ function getCarSideTexture() {
 
   return new THREE.CanvasTexture(canvas)
 }
+
+// Rendering the Track
+function renderMap(mapWidth, mapHeight) {
+  // Plane with Line Markings
+  const lineMarkingsTexture = getLineMarkings(mapWidth, mapHeight)
+
+  const planeGeometry = new THREE.PlaneGeometry(mapWidth, mapHeight)
+  const planeMaterial = new THREE.MeshLambertMaterial({
+    color: 0x546e90,
+    map: lineMarkingsTexture,
+  })
+  const plane = new THREE.Mesh(planeGeometry, planeMaterial)
+  scene.add(plane)
+
+  // Extruded Geometry
+  const middleIsland = getMiddleIsland()
+  const outerField = getOuterField(mapWidth, mapHeight)
+
+  const fieldGeometry = new THREE.ExtrudeGeometry([middleIsland, outerField], {
+    depth: 6,
+    bevelEnabled: false,
+  })
+
+  const fieldMesh = new THREE.Mesh(fieldGeometry, [
+    new THREE.MeshLambertMaterial({ color: 0x67c240 }),
+    new THREE.MeshLambertMaterial({ color: 0x23311c }),
+  ])
+
+  scene.add(fieldMesh)
+}
+
+function getLineMarkings(mapWidth, mapHeight) {
+  const canvas = document.createElement('canvas')
+  canvas.width = mapWidth
+  canvas.height = mapHeight
+  const context = canvas.getContext('2d')
+
+  context.fillStyle = '#546E90'
+  context.fillRect(0, 0, mapWidth, mapHeight)
+
+  context.lineWidth = 2
+  context.strokeStyle = '#E0FFFF'
+  context.setLineDash([10, 14])
+
+  context.beginPath()
+  context.arc(mapWidth / 2, mapHeight / 2, trackRadius, 0, Math.PI * 2)
+  context.stroke()
+
+  return new THREE.CanvasTexture(canvas)
+}
+
+function getMiddleIsland() {
+  const islandMiddle = new THREE.Shape()
+
+  islandMiddle.absarc(0, 0, innerTrackRadius, 0, Math.PI, true)
+  islandMiddle.absarc(0, 0, innerTrackRadius, Math.PI, Math.PI * 2, true)
+
+  return islandMiddle
+}
+
+function getOuterField(mapWidth, mapHeight) {
+  const field = new THREE.Shape()
+
+  field.moveTo(-mapWidth / 2, -mapHeight / 2)
+
+  field.lineTo(0, -mapHeight / 2)
+  field.lineTo(0, -trackRadius)
+  field.absarc(0, 0, outerTrackRadius, 0, Math.PI * 2, true)
+  field.lineTo(0, -mapHeight / 2)
+  field.lineTo(mapWidth / 2, -mapHeight / 2)
+  field.lineTo(mapWidth / 2, mapHeight / 2)
+  field.lineTo(-mapWidth / 2, mapHeight / 2)
+  field.lineTo(-mapWidth / 2, -mapHeight / 2)
+
+  return field
+}
+
+window.addEventListener('resize', () => {
+  console.log('resize', window.innerWidth, window.innerHeight)
+
+  // Adjust camera
+  const newAspectRatio = window.innerWidth / window.innerHeight
+  const adjustedCameraHeight = cameraWidth / newAspectRatio
+
+  camera.top = adjustedCameraHeight / 2
+  camera.bottom = adjustedCameraHeight / -2
+  camera.updateProjectionMatrix() // Must be called after change
+
+  // Reset renderer
+  renderer.setSize(window.innerWidth, window.innerHeight)
+  renderer.render(scene, camera)
+})
