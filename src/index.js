@@ -2,10 +2,23 @@ import * as THREE from 'three'
 
 // Defining Constants
 const vehicleColors = [0xa52523, 0xbdbdb638, 0x0da2ff, 0xf05e16, 0xff69b4]
+const lawnGreen = '#67C240'
+const trackColor = '#546E90'
+const edgeColor = '#725F48'
+const treeCrownColor = 0x498c2c
+const treeTrunkColor = 0x4b3f2f
 const trackRadius = 100
 const trackWidth = 25
 const innerTrackRadius = trackRadius - trackWidth
 const outerTrackRadius = trackRadius + trackWidth
+
+const treeTrunkGeometry = new THREE.BoxGeometry(15, 15, 30)
+const treeTrunkMaterial = new THREE.MeshLambertMaterial({
+  color: treeTrunkColor,
+})
+const treeCrownMaterial = new THREE.MeshLambertMaterial({
+  color: treeCrownColor,
+})
 
 // Setting up the Scene
 const scene = new THREE.Scene()
@@ -16,12 +29,27 @@ playerCar.position.y = 0
 playerCar.rotation.z = Math.PI / 2
 scene.add(playerCar)
 
+const truck = Truck()
+truck.position.x = -trackRadius
+truck.position.y = 60
+truck.rotation.z = Math.PI / 3.5
+scene.add(truck)
+
 // Set up Lights
 const ambientLight = new THREE.AmbientLight(0xffffff, 0.6)
 scene.add(ambientLight)
 
 const dirLight = new THREE.DirectionalLight(0xffffff, 0.6)
-dirLight.position.set(100, -300, 400)
+dirLight.position.set(100, -300, 300)
+dirLight.castShadow = true
+dirLight.shadow.mapSize.width = 1024
+dirLight.shadow.mapSize.height = 1024
+dirLight.shadow.camera.left = -400
+dirLight.shadow.camera.right = 350
+dirLight.shadow.camera.top = 400
+dirLight.shadow.camera.bottom = -300
+dirLight.shadow.camera.near = 100
+dirLight.shadow.camera.far = 800
 scene.add(dirLight)
 
 // Set up Camera
@@ -44,11 +72,107 @@ camera.lookAt(0, 0, 0)
 renderMap(cameraWidth, cameraHeight * 2)
 
 // Set up renderer
-const renderer = new THREE.WebGLRenderer({ antialias: true })
+const renderer = new THREE.WebGLRenderer({
+  antialias: true,
+  powerPreference: 'high-performance',
+})
 renderer.setSize(window.innerWidth, window.innerHeight)
+renderer.shadowMap.enabled = true
 renderer.render(scene, camera)
 
 document.body.appendChild(renderer.domElement)
+
+// Rendering the Truck
+function getTruckFrontTexture() {
+  const canvas = document.createElement('canvas')
+  canvas.width = 32
+  canvas.height = 32
+  const context = canvas.getContext('2d')
+
+  context.fillStyle = '#ffffff'
+  context.fillRect(0, 0, 32, 32)
+
+  context.fillStyle = '#666666'
+  context.fillRect(0, 5, 32, 10)
+
+  return new THREE.CanvasTexture(canvas)
+}
+
+function getTruckSideTexture() {
+  const canvas = document.createElement('canvas')
+  canvas.width = 32
+  canvas.height = 32
+  const context = canvas.getContext('2d')
+
+  context.fillStyle = '#ffffff'
+  context.fillRect(0, 0, 32, 32)
+
+  context.fillStyle = '#666666'
+  context.fillRect(17, 5, 15, 10)
+
+  return new THREE.CanvasTexture(canvas)
+}
+
+function Truck() {
+  const truck = new THREE.Group()
+  const color = pickRandom(vehicleColors)
+
+  const base = new THREE.Mesh(
+    new THREE.BoxGeometry(100, 25, 5),
+    new THREE.MeshLambertMaterial({ color: 0xb4c6fc })
+  )
+  base.position.z = 10
+  truck.add(base)
+
+  const cargo = new THREE.Mesh(
+    new THREE.BoxGeometry(75, 35, 40),
+    new THREE.MeshLambertMaterial({ color: 0xffffff }) // 0xb4c6fc
+  )
+  cargo.position.x = -15
+  cargo.position.z = 30
+  cargo.castShadow = true
+  cargo.receiveShadow = true
+  truck.add(cargo)
+
+  const truckFrontTexture = getTruckFrontTexture()
+  truckFrontTexture.center = new THREE.Vector2(0.5, 0.5)
+  truckFrontTexture.rotation = Math.PI / 2
+
+  const truckLeftTexture = getTruckSideTexture()
+  truckLeftTexture.flipY = false
+
+  const truckRightTexture = getTruckSideTexture()
+
+  const cabin = new THREE.Mesh(new THREE.BoxGeometry(25, 30, 30), [
+    new THREE.MeshLambertMaterial({ color, map: truckFrontTexture }),
+    new THREE.MeshLambertMaterial({ color }), // back
+    new THREE.MeshLambertMaterial({ color, map: truckLeftTexture }),
+    new THREE.MeshLambertMaterial({ color, map: truckRightTexture }),
+    new THREE.MeshLambertMaterial({ color }), // top
+    new THREE.MeshLambertMaterial({ color }), // bottom
+  ])
+  cabin.position.x = 40
+  cabin.position.z = 20
+  cabin.castShadow = true
+  cabin.receiveShadow = true
+  truck.add(cabin)
+
+  const backWheel = Wheel()
+  backWheel.position.x = -30
+  truck.add(backWheel)
+
+  const middleWheel = Wheel()
+  middleWheel.position.x = 10
+  truck.add(middleWheel)
+
+  const frontWheel = Wheel()
+  frontWheel.position.x = 38
+  truck.add(frontWheel)
+
+  truck.scale.set(0.5, 0.5, 0.5)
+
+  return truck
+}
 
 // Rendering the Car
 function Car() {
@@ -217,6 +341,31 @@ function getOuterField(mapWidth, mapHeight) {
   field.lineTo(-mapWidth / 2, -mapHeight / 2)
 
   return field
+}
+
+function Tree() {
+  const tree = new THREE.Group()
+
+  const trunk = new THREE.Mesh(treeTrunkGeometry, treeTrunkMaterial)
+  trunk.position.z = 10
+  trunk.castShadow = true
+  trunk.receiveShadow = true
+  trunk.matrixAutoUpdate = false
+  tree.add(trunk)
+
+  const treeHeights = [45, 60, 75]
+  const height = pickRandom(treeHeights)
+
+  const crown = new THREE.Mesh(
+    new THREE.SphereGeometry(height / 2, 30, 30),
+    treeCrownMaterial
+  )
+  crown.position.z = height / 2 + 30
+  crown.castShadow = true
+  crown.receiveShadow = false
+  tree.add(crown)
+
+  return tree
 }
 
 window.addEventListener('resize', () => {
