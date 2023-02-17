@@ -36,21 +36,21 @@ truck.rotation.z = Math.PI / 3.5
 scene.add(truck)
 
 const treesLeft = []
-const numberTreesLeft = 300
+const numberTreesLeft = 100
 for (let i = 0; i < numberTreesLeft; i++) {
   treesLeft[i] = Tree()
-  treesLeft[i].position.x = getRandomNumber(-1000, -200)
-  treesLeft[i].position.y = getRandomNumber(-1000, 1000)
+  treesLeft[i].position.x = getRandomNumber(-500, -200)
+  treesLeft[i].position.y = getRandomNumber(-500, 500)
   treesLeft[i].position.z = 0
   scene.add(treesLeft[i])
 }
 
 const treesRight = []
-const numberTreesRight = 300
+const numberTreesRight = 100
 for (let i = 0; i < numberTreesRight; i++) {
   treesRight[i] = Tree()
-  treesRight[i].position.x = getRandomNumber(1000, 200)
-  treesRight[i].position.y = getRandomNumber(-1000, 1000)
+  treesRight[i].position.x = getRandomNumber(500, 200)
+  treesRight[i].position.y = getRandomNumber(-500, 500)
   treesRight[i].position.z = 0
   scene.add(treesRight[i])
 }
@@ -60,7 +60,7 @@ const numberTreesUp = 30
 for (let i = 0; i < numberTreesUp; i++) {
   treesUp[i] = Tree()
   treesUp[i].position.x = getRandomNumber(-100, 100)
-  treesUp[i].position.y = getRandomNumber(150, 1000)
+  treesUp[i].position.y = getRandomNumber(150, 500)
   treesUp[i].position.z = 0
   scene.add(treesUp[i])
 }
@@ -70,7 +70,7 @@ const numberTreesDown = 30
 for (let i = 0; i < numberTreesDown; i++) {
   treesDown[i] = Tree()
   treesDown[i].position.x = getRandomNumber(-100, 100)
-  treesDown[i].position.y = getRandomNumber(-150, -1000)
+  treesDown[i].position.y = getRandomNumber(-150, -500)
   treesDown[i].position.z = 0
   scene.add(treesDown[i])
 }
