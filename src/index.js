@@ -35,6 +35,46 @@ truck.position.y = 60
 truck.rotation.z = Math.PI / 3.5
 scene.add(truck)
 
+const treesLeft = []
+const numberTreesLeft = 300
+for (let i = 0; i < numberTreesLeft; i++) {
+  treesLeft[i] = Tree()
+  treesLeft[i].position.x = getRandomNumber(-1000, -200)
+  treesLeft[i].position.y = getRandomNumber(-1000, 1000)
+  treesLeft[i].position.z = 0
+  scene.add(treesLeft[i])
+}
+
+const treesRight = []
+const numberTreesRight = 300
+for (let i = 0; i < numberTreesRight; i++) {
+  treesRight[i] = Tree()
+  treesRight[i].position.x = getRandomNumber(1000, 200)
+  treesRight[i].position.y = getRandomNumber(-1000, 1000)
+  treesRight[i].position.z = 0
+  scene.add(treesRight[i])
+}
+
+const treesUp = []
+const numberTreesUp = 30
+for (let i = 0; i < numberTreesUp; i++) {
+  treesUp[i] = Tree()
+  treesUp[i].position.x = getRandomNumber(-100, 100)
+  treesUp[i].position.y = getRandomNumber(150, 1000)
+  treesUp[i].position.z = 0
+  scene.add(treesUp[i])
+}
+
+const treesDown = []
+const numberTreesDown = 30
+for (let i = 0; i < numberTreesDown; i++) {
+  treesDown[i] = Tree()
+  treesDown[i].position.x = getRandomNumber(-100, 100)
+  treesDown[i].position.y = getRandomNumber(-150, -1000)
+  treesDown[i].position.z = 0
+  scene.add(treesDown[i])
+}
+
 // Set up Lights
 const ambientLight = new THREE.AmbientLight(0xffffff, 0.6)
 scene.add(ambientLight)
@@ -82,6 +122,11 @@ renderer.render(scene, camera)
 
 document.body.appendChild(renderer.domElement)
 
+// Random Number Generator
+function getRandomNumber(min, max) {
+  return Math.floor(Math.random() * (max - min)) + min
+}
+
 // Rendering the Truck
 function getTruckFrontTexture() {
   const canvas = document.createElement('canvas')
@@ -97,7 +142,6 @@ function getTruckFrontTexture() {
 
   return new THREE.CanvasTexture(canvas)
 }
-
 function getTruckSideTexture() {
   const canvas = document.createElement('canvas')
   canvas.width = 32
@@ -112,7 +156,6 @@ function getTruckSideTexture() {
 
   return new THREE.CanvasTexture(canvas)
 }
-
 function Truck() {
   const truck = new THREE.Group()
   const color = pickRandom(vehicleColors)
@@ -222,7 +265,6 @@ function Car() {
 
   return car
 }
-
 function Wheel() {
   const wheel = new THREE.Mesh(
     new THREE.BoxGeometry(12, 33, 12),
@@ -231,11 +273,9 @@ function Wheel() {
   wheel.position.z = 6
   return wheel
 }
-
 function pickRandom(array) {
   return array[Math.floor(Math.random() * array.length)]
 }
-
 function getCarFrontTexture() {
   const canvas = document.createElement('canvas')
   canvas.width = 64
@@ -250,7 +290,6 @@ function getCarFrontTexture() {
 
   return new THREE.CanvasTexture(canvas)
 }
-
 function getCarSideTexture() {
   const canvas = document.createElement('canvas')
   canvas.width = 128
@@ -296,7 +335,6 @@ function renderMap(mapWidth, mapHeight) {
 
   scene.add(fieldMesh)
 }
-
 function getLineMarkings(mapWidth, mapHeight) {
   const canvas = document.createElement('canvas')
   canvas.width = mapWidth
@@ -316,7 +354,6 @@ function getLineMarkings(mapWidth, mapHeight) {
 
   return new THREE.CanvasTexture(canvas)
 }
-
 function getMiddleIsland() {
   const islandMiddle = new THREE.Shape()
 
@@ -325,7 +362,6 @@ function getMiddleIsland() {
 
   return islandMiddle
 }
-
 function getOuterField(mapWidth, mapHeight) {
   const field = new THREE.Shape()
 
@@ -343,6 +379,7 @@ function getOuterField(mapWidth, mapHeight) {
   return field
 }
 
+// Rendering the Trees
 function Tree() {
   const tree = new THREE.Group()
 
@@ -368,6 +405,7 @@ function Tree() {
   return tree
 }
 
+// Default Handlers
 window.addEventListener('resize', () => {
   console.log('resize', window.innerWidth, window.innerHeight)
 
