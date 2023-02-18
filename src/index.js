@@ -19,6 +19,7 @@ let lastTimeStamp
 let accelerate = false
 let decelerate = false
 let cameraType = 0
+let playerVehicleType = 'car'
 
 const treeTrunkGeometry = new THREE.BoxGeometry(15, 15, 75)
 const treeTrunkMaterial = new THREE.MeshLambertMaterial({
@@ -31,7 +32,7 @@ const treeCrownMaterial = new THREE.MeshLambertMaterial({
 // Setting up the Scene
 const scene = new THREE.Scene()
 
-const playerCar = Car()
+const playerCar = playerVehicleType == 'car' ? Car() : Truck()
 playerCar.position.x = -trackRadius
 playerCar.position.y = 0
 playerCar.rotation.z = Math.PI / 2
@@ -111,6 +112,18 @@ const camera = new THREE.OrthographicCamera(
 camera.position.set(0, -210, 300)
 camera.lookAt(0, 0, 0)
 
+const miniMapCamera = new THREE.OrthographicCamera(
+  -180,
+  180,
+  180,
+  -180,
+  0,
+  1000
+)
+
+miniMapCamera.position.set(0, 0, 300)
+miniMapCamera.lookAt(0, 0, 0)
+
 renderMap(cameraWidth, cameraHeight * 2)
 
 const POVCamera = new THREE.PerspectiveCamera(110, aspectRatio, 0.1, 1000)
@@ -129,6 +142,20 @@ renderer.shadowMap.enabled = true
 document.body.appendChild(renderer.domElement)
 
 reset()
+
+// Trying the Mini Map
+const miniMapRenderer = new THREE.WebGLRenderer({
+  antialias: true,
+  powerPreference: 'high-performance',
+})
+
+miniMapRenderer.setSize(window.innerWidth / 4, window.innerHeight / 4)
+miniMapRenderer.shadowMap.enabled = true
+miniMapRenderer.domElement.style.position = 'absolute'
+miniMapRenderer.domElement.style.bottom = 0
+miniMapRenderer.domElement.style.border = "5px solid white"
+miniMapRenderer.domElement.style.borderRadius = '100%'
+document.body.appendChild(miniMapRenderer.domElement)
 
 // Animating the Game Logic
 function reset() {
@@ -187,6 +214,14 @@ window.addEventListener('keydown', function (event) {
     cameraType = 2
   }
 
+  if (event.key == 'T' || event.key == 't') {
+    playerVehicleType = 'truck'
+  }
+
+  if (event.key == 'C' || event.key == 'c') {
+    playerVehicleType = 'car'
+  }
+
   if (event.key == 'R' || event.key == 'r') {
     reset()
     return
@@ -227,6 +262,7 @@ function animation(timestamp) {
   moveOtherVehicles(timeDelta)
 
   renderer.render(scene, selectCamera(cameraType))
+  miniMapRenderer.render(scene, miniMapCamera)
   lastTimeStamp = timestamp
 }
 function selectCamera(cameraType) {
