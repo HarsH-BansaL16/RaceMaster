@@ -1,4 +1,5 @@
 import * as THREE from 'three'
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js'
 
 // Defining Constants
 const vehicleColors = [0xa52523, 0xbdbdb638, 0x0da2ff, 0xf05e16, 0xff69b4]
@@ -178,6 +179,99 @@ reverseCameraRenderer.domElement.style.top = 0
 reverseCameraRenderer.domElement.style.left = '33%'
 reverseCameraRenderer.domElement.style.border = '5px solid white'
 document.body.appendChild(reverseCameraRenderer.domElement)
+
+// Loading the 3D Human
+const loader = new GLTFLoader()
+loader.load('human.glb', function (gltf) {
+  let human = gltf.scene.children[0]
+  human.scale.set(0.15, 0.15, 0.15)
+  human.rotateX(Math.PI / 2)
+  human.rotateZ(1)
+  human.translateX(185)
+  scene.add(gltf.scene)
+})
+loader.load('human.glb', function (gltf) {
+  let human = gltf.scene.children[0]
+  human.scale.set(0.15, 0.15, 0.15)
+  human.rotateX(Math.PI / 2)
+  human.rotateZ(2)
+  human.translateX(185)
+  scene.add(gltf.scene)
+})
+loader.load('human.glb', function (gltf) {
+  let human = gltf.scene.children[0]
+  human.scale.set(0.15, 0.15, 0.15)
+  human.rotateX(Math.PI / 2)
+  human.rotateZ(3)
+  human.translateX(185)
+  scene.add(gltf.scene)
+})
+loader.load('human.glb', function (gltf) {
+  let human = gltf.scene.children[0]
+  human.scale.set(0.15, 0.15, 0.15)
+  human.rotateX(Math.PI / 2)
+  human.rotateZ(4)
+  human.translateX(185)
+  scene.add(gltf.scene)
+})
+loader.load('human.glb', function (gltf) {
+  let human = gltf.scene.children[0]
+  human.scale.set(0.15, 0.15, 0.15)
+  human.rotateX(Math.PI / 2)
+  human.rotateZ(5)
+  human.translateX(185)
+  scene.add(gltf.scene)
+})
+loader.load('human.glb', function (gltf) {
+  let human = gltf.scene.children[0]
+  human.scale.set(0.15, 0.15, 0.15)
+  human.rotateX(Math.PI / 2)
+  human.rotateZ(6)
+  human.translateX(185)
+  scene.add(gltf.scene)
+})
+loader.load('human.glb', function (gltf) {
+  let human = gltf.scene.children[0]
+  human.scale.set(0.15, 0.15, 0.15)
+  human.rotateX(Math.PI / 2)
+  human.rotateZ(7)
+  human.translateX(185)
+  scene.add(gltf.scene)
+})
+loader.load('human.glb', function (gltf) {
+  let human = gltf.scene.children[0]
+  human.scale.set(0.15, 0.15, 0.15)
+  human.rotateX(Math.PI / 2)
+  human.rotateZ(8)
+  human.translateX(185)
+  scene.add(gltf.scene)
+})
+loader.load('human.glb', function (gltf) {
+  let human = gltf.scene.children[0]
+  human.scale.set(0.15, 0.15, 0.15)
+  human.rotateX(Math.PI / 2)
+  human.rotateZ(9)
+  human.translateX(185)
+  scene.add(gltf.scene)
+})
+loader.load('human.glb', function (gltf) {
+  let human = gltf.scene.children[0]
+  human.scale.set(0.15, 0.15, 0.15)
+  human.rotateX(Math.PI / 2)
+  human.rotateZ(10)
+  human.translateX(185)
+  scene.add(gltf.scene)
+})
+
+// Loading  the Feul Can 
+// loader.load('fuel.glb', function (gltf) {
+//   let feul = gltf.scene.children[0]
+//   feul.scale.set(0.15, 0.15, 0.15)
+//   feul.rotateX(Math.PI / 2)
+//   feul.rotateZ(10)
+//   feul.translateX(185)
+//   scene.add(gltf.scene)
+// })
 
 // Animating the Game Logic
 function reset() {
