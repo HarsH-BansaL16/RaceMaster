@@ -129,6 +129,14 @@ renderMap(cameraWidth, cameraHeight * 2)
 const POVCamera = new THREE.PerspectiveCamera(110, aspectRatio, 0.1, 1000)
 POVCamera.up.set(0, 0, 1)
 
+const carReverseCamera = new THREE.PerspectiveCamera(
+  110,
+  aspectRatio,
+  0.1,
+  1000
+)
+carReverseCamera.up.set(0, 0, 1)
+
 const carCamera = new THREE.PerspectiveCamera(110, aspectRatio, 0.1, 1000)
 carCamera.up.set(0, 0, 1)
 
@@ -143,7 +151,7 @@ document.body.appendChild(renderer.domElement)
 
 reset()
 
-// Trying the Mini Map
+// MiniMap Renderer
 const miniMapRenderer = new THREE.WebGLRenderer({
   antialias: true,
   powerPreference: 'high-performance',
@@ -153,9 +161,23 @@ miniMapRenderer.setSize(window.innerWidth / 4, window.innerHeight / 4)
 miniMapRenderer.shadowMap.enabled = true
 miniMapRenderer.domElement.style.position = 'absolute'
 miniMapRenderer.domElement.style.bottom = 0
-miniMapRenderer.domElement.style.border = "5px solid white"
+miniMapRenderer.domElement.style.border = '5px solid white'
 miniMapRenderer.domElement.style.borderRadius = '100%'
 document.body.appendChild(miniMapRenderer.domElement)
+
+// Reverse Camera Renderer
+const reverseCameraRenderer = new THREE.WebGLRenderer({
+  antialias: true,
+  powerPreference: 'high-performance',
+})
+
+reverseCameraRenderer.setSize(window.innerWidth / 3, window.innerHeight / 6)
+reverseCameraRenderer.shadowMap.enabled = true
+reverseCameraRenderer.domElement.style.position = 'absolute'
+reverseCameraRenderer.domElement.style.top = 0
+reverseCameraRenderer.domElement.style.left = '33%'
+reverseCameraRenderer.domElement.style.border = '5px solid white'
+document.body.appendChild(reverseCameraRenderer.domElement)
 
 // Animating the Game Logic
 function reset() {
@@ -214,6 +236,11 @@ window.addEventListener('keydown', function (event) {
     cameraType = 2
   }
 
+  if (event.key == '3') {
+    // Pov Camera
+    cameraType = 3
+  }
+
   if (event.key == 'T' || event.key == 't') {
     playerVehicleType = 'truck'
   }
@@ -263,6 +290,7 @@ function animation(timestamp) {
 
   renderer.render(scene, selectCamera(cameraType))
   miniMapRenderer.render(scene, miniMapCamera)
+  reverseCameraRenderer.render(scene, carReverseCamera)
   lastTimeStamp = timestamp
 }
 function selectCamera(cameraType) {
@@ -302,6 +330,25 @@ function movePlayerCar(timeDelta) {
         Math.sin(totalPlayerAngle - Math.PI / 2 - Math.PI / 3 - Math.PI / 7),
     15
   )
+
+  carCamera.position.set(
+    playerX - (20 * playerY) / playerCarRadius,
+    playerY + (playerX / playerY) * ((20 * playerY) / playerCarRadius),
+    20
+  )
+  carCamera.lookAt(playerX, playerY, 15)
+
+  carReverseCamera.position.set(
+    playerX - 2.0 * Math.cos(totalPlayerAngle),
+    playerY - 2.0 * Math.sin(totalPlayerAngle),
+    15
+  )
+  carReverseCamera.lookAt(
+    playerX + 0.2 * Math.cos(totalPlayerAngle - Math.PI / 2),
+    playerY + 0.2 * Math.sin(totalPlayerAngle - Math.PI / 2),
+    15
+  )
+  carReverseCamera.rotateY(Math.PI / 2)
 }
 function getPlayerSpeed() {
   if (accelerate) {
