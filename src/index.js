@@ -267,14 +267,14 @@ loader.load('human.glb', function (gltf) {
 })
 
 // Loading  the Feul Can
-// loader.load('fuel.glb', function (gltf) {
-//   let feul = gltf.scene.children[0]
-//   feul.scale.set(0.15, 0.15, 0.15)
-//   feul.rotateX(Math.PI / 2)
-//   feul.rotateZ(10)
-//   feul.translateX(185)
-//   scene.add(gltf.scene)
-// })
+loader.load('fuel.glb', function (gltf) {
+  let feul = gltf.scene.children[0]
+  feul.scale.set(0.15, 0.15, 0.15)
+  feul.rotateX(Math.PI / 2)
+  feul.rotateZ(10)
+  feul.translateX(185)
+  // scene.add(gltf.scene)
+})
 
 // Animating the Game Logic
 function reset() {
