@@ -18,12 +18,17 @@ const speed = 0.0005
 let score
 let countOtherVehicles = 0
 let otherVehicles = []
-let otherVehiclesBB = []
 let lastTimeStamp
 let accelerate = false
 let decelerate = false
 let cameraType = 0
 let playerVehicleType = 'car'
+
+// Player Stats
+let healthValue = 100
+let fuelValue = 100
+let timeValue = 0
+let distanceValue = 360
 
 const treeTrunkGeometry = new THREE.BoxGeometry(15, 15, 75)
 const treeTrunkMaterial = new THREE.MeshLambertMaterial({
@@ -267,14 +272,14 @@ loader.load('human.glb', function (gltf) {
 })
 
 // Loading  the Feul Can
-loader.load('fuel.glb', function (gltf) {
-  let feul = gltf.scene.children[0]
-  feul.scale.set(0.15, 0.15, 0.15)
-  feul.rotateX(Math.PI / 2)
-  feul.rotateZ(10)
-  feul.translateX(185)
-  // scene.add(gltf.scene)
-})
+// loader.load('fuel.glb', function (gltf) {
+//   let feul = gltf.scene.children[0]
+//   feul.scale.set(0.15, 0.15, 0.15)
+//   feul.rotateX(Math.PI / 2)
+//   feul.rotateZ(10)
+//   feul.translateX(185)
+//   scene.add(gltf.scene)
+// })
 
 // Animating the Game Logic
 function reset() {
@@ -283,13 +288,17 @@ function reset() {
   movePlayerCar(0)
   score = 0
   lastTimeStamp = undefined
+  document.getElementById('healthValue').value = healthValue
+  document.getElementById('fuelValue').value = fuelValue
+  document.getElementById('scoreValue').innerHTML = score
+  document.getElementById('timeValue').innerHTML = timeValue
+  document.getElementById('distanceValue').innerHTML = distanceValue
 
   // Remove Other Vehicles
   otherVehicles.forEach((vehicle) => {
     scene.remove(vehicle.mesh)
   })
   otherVehicles = []
-  otherVehiclesBB = []
 
   renderer.render(scene, selectCamera(cameraType))
   ready = true
@@ -392,13 +401,27 @@ function animation(timestamp) {
   miniMapRenderer.render(scene, miniMapCamera)
   reverseCameraRenderer.render(scene, carReverseCamera)
   lastTimeStamp = timestamp
+
+  document.getElementById('healthValue').value = healthValue
+  document.getElementById('fuelValue').value = fuelValue
+  document.getElementById('scoreValue').innerHTML = score
+  document.getElementById('timeValue').innerHTML = timeValue
+  document.getElementById('distanceValue').innerHTML = distanceValue
+
+  fuelValue -= 0.1
+  // timeValue += timeDelta
+  // timeValue = Math.floor(timeValue / 1000)
+  // distanceValue -= 1
+
+  if(distanceValue < 1){
+    distanceValue = 360
+  }
 }
 function collisionDetection() {
   for (let i = 0; i < countOtherVehicles; i++) {
     let newBB = new THREE.Box3().setFromObject(otherVehicles[i].mesh)
     if(playerCarBB.intersectsBox(newBB)){
-      console.log(true)
-      console.log(i)
+      healthValue -= 0.5
     }
   }
 }

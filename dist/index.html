@@ -9,6 +9,106 @@
     </style>
   </head>
   <body>
+    <div style="position: absolute; left: 10px; top: 10px">
+      <span
+        style="
+          background-color: #5656e6;
+          border-radius: 10px;
+          font-family: Helvetica;
+          font-size: 1.5rem;
+        "
+        >Health :</span
+      >
+      <progress
+        id="healthValue"
+        max="100"
+        min="0"
+        style="height: 22px"
+      ></progress>
+      <br />
+      <br />
+      <span
+        style="
+          background-color: #5656e6;
+          border-radius: 10px;
+          font-family: Helvetica;
+          font-size: 1.5rem;
+        "
+        >Fuel :</span
+      >
+      <progress
+        id="fuelValue"
+        max="100"
+        min="0"
+        style="height: 22px"
+      ></progress>
+      <br />
+      <br />
+      <span
+        style="
+          background-color: #5656e6;
+          border-radius: 10px;
+          font-family: Helvetica;
+          font-size: 1.5rem;
+          right: 20px;
+        "
+        >Score :</span
+      >
+      <span
+        style="
+          background-color: #5656e6;
+          border-radius: 10px;
+          font-size: 1.5rem;
+          font-family: Helvetica;
+          left: 20px;
+        "
+        id="scoreValue"
+      ></span>
+      <br />
+      <br />
+      <span
+        style="
+          background-color: #5656e6;
+          border-radius: 10px;
+          font-family: Helvetica;
+          font-size: 1.5rem;
+          right: 20px;
+        "
+        >Time :</span
+      >
+      <span
+        style="
+          background-color: #5656e6;
+          border-radius: 10px;
+          font-size: 1.5rem;
+          font-family: Helvetica;
+          left: 20px;
+        "
+        id="timeValue"
+      ></span>
+      <br>
+      <br>
+       <span
+        style="
+          background-color: #5656e6;
+          border-radius: 10px;
+          font-family: Helvetica;
+          font-size: 1.5rem;
+          right: 20px;
+        "
+        >Distance to Fuel :</span
+      >
+      <span
+        style="
+          background-color: #5656e6;
+          border-radius: 10px;
+          font-size: 1.5rem;
+          font-family: Helvetica;
+          left: 20px;
+        "
+        id="distanceValue"
+      ></span>
+    </div>
     <script src="http://localhost:8080/dist/main.js"></script>
   </body>
 </html>
