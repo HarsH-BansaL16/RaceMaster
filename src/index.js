@@ -1,5 +1,9 @@
 import * as THREE from 'three'
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js'
+import {
+  CSS2DRenderer,
+  CSS2DObject,
+} from 'three/examples/jsm/renderers/CSS2DRenderer'
 
 // Defining Constants
 const vehicleColors = [0xa52523, 0xbdbdb638, 0x0da2ff, 0xf05e16, 0xff69b4]
@@ -158,8 +162,6 @@ renderer.setSize(window.innerWidth, window.innerHeight)
 renderer.shadowMap.enabled = true
 document.body.appendChild(renderer.domElement)
 
-reset()
-
 // MiniMap Renderer
 const miniMapRenderer = new THREE.WebGLRenderer({
   antialias: true,
@@ -187,6 +189,46 @@ reverseCameraRenderer.domElement.style.top = 0
 reverseCameraRenderer.domElement.style.left = '33%'
 reverseCameraRenderer.domElement.style.border = '5px solid white'
 document.body.appendChild(reverseCameraRenderer.domElement)
+
+// CSS2D Renderer
+const labelRenderer = new CSS2DRenderer()
+labelRenderer.setSize(window.innerWidth, window.innerHeight)
+labelRenderer.domElement.style.position = 'absolute'
+labelRenderer.domElement.style.top = '0px'
+document.body.appendChild(labelRenderer.domElement)
+
+// CSS2D Objects for Health Over
+const heading = document.createElement('h1')
+heading.textContent = '-> Welcome to the Car Racing Game'
+
+const heading2 = document.createElement('h1')
+heading2.textContent = '-> Use the Arrow Keys to Control the Car'
+
+// const button = document.createElement('input')
+// button.setAttribute('type', 'button')
+// button.setAttribute('ID', 'startGameButton')
+// button.setAttribute('value', 'Start Game')
+
+const divEnter = document.createElement('div')
+divEnter.className = 'startGameClass'
+divEnter.appendChild(heading)
+divEnter.appendChild(heading2)
+// divEnter.appendChild(button)
+
+const divEnterContainer = new CSS2DObject(divEnter)
+scene.add(divEnterContainer)
+divEnterContainer.position.set(0, 0, 0)
+
+reset()
+
+// button.onclick = function () {
+//   if (ready) {
+//     ready = false
+//     alert('Game Chutiya hai!')
+//     divEnterContainer.position.set(-2000, 0, 0)
+//     renderer.setAnimationLoop(animation)
+//   }
+// }
 
 // Loading the 3D Human
 const loader = new GLTFLoader()
@@ -291,7 +333,7 @@ function reset() {
   document.getElementById('healthValue').value = healthValue
   document.getElementById('fuelValue').value = fuelValue
   document.getElementById('scoreValue').innerHTML = score
-  document.getElementById('timeValue').innerHTML = timeValue
+  document.getElementById('timeValue').innerHTML = timeValue.toFixed(2)
   document.getElementById('distanceValue').innerHTML = distanceValue
 
   // Remove Other Vehicles
@@ -301,6 +343,7 @@ function reset() {
   otherVehicles = []
 
   renderer.render(scene, selectCamera(cameraType))
+  labelRenderer.render(scene, camera)
   ready = true
 }
 function startGame() {
@@ -310,8 +353,13 @@ function startGame() {
   }
 }
 window.addEventListener('keydown', function (event) {
-  if (event.key == 'ArrowUp') {
+  if (event.key == 'Enter') {
+    divEnterContainer.position.set(-2000, 0, 0)
     startGame()
+    return
+  }
+
+  if (event.key == 'ArrowUp') {
     accelerate = true
     return
   }
@@ -355,11 +403,6 @@ window.addEventListener('keydown', function (event) {
   if (event.key == 'C' || event.key == 'c') {
     playerVehicleType = 'car'
   }
-
-  if (event.key == 'R' || event.key == 'r') {
-    reset()
-    return
-  }
 })
 window.addEventListener('keyup', function (event) {
   if (event.key == 'ArrowUp') {
@@ -383,6 +426,9 @@ function animation(timestamp) {
   movePlayerCar(timeDelta)
   playerCarBB = new THREE.Box3().setFromObject(playerCar)
 
+  if (timeValue > 6) {
+  }
+
   const laps = Math.floor(Math.abs(playerAngleMoved) / (Math.PI * 2))
 
   if (laps != score) {
@@ -405,22 +451,21 @@ function animation(timestamp) {
   document.getElementById('healthValue').value = healthValue
   document.getElementById('fuelValue').value = fuelValue
   document.getElementById('scoreValue').innerHTML = score
-  document.getElementById('timeValue').innerHTML = timeValue
+  document.getElementById('timeValue').innerHTML = timeValue.toFixed(2)
   document.getElementById('distanceValue').innerHTML = distanceValue
 
   fuelValue -= 0.1
-  // timeValue += timeDelta
-  // timeValue = Math.floor(timeValue / 1000)
+  timeValue += 0.01
   // distanceValue -= 1
 
-  if(distanceValue < 1){
+  if (distanceValue < 1) {
     distanceValue = 360
   }
 }
 function collisionDetection() {
   for (let i = 0; i < countOtherVehicles; i++) {
     let newBB = new THREE.Box3().setFromObject(otherVehicles[i].mesh)
-    if(playerCarBB.intersectsBox(newBB)){
+    if (playerCarBB.intersectsBox(newBB)) {
       healthValue -= 0.5
     }
   }
@@ -837,5 +882,7 @@ window.addEventListener('resize', () => {
 
   // Reset renderer
   renderer.setSize(window.innerWidth, window.innerHeight)
+  labelRenderer.setSize(window.innerWidth, window.innerHeight)
   renderer.render(scene, selectCamera(cameraType))
+  labelRenderer.render(scene, camera)
 })
