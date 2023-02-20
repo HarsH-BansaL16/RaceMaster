@@ -27,6 +27,7 @@ let accelerate = false
 let decelerate = false
 let cameraType = 0
 let playerVehicleType = 'car'
+let sceneType = 1
 
 // Player Stats
 let healthValue = 100
@@ -44,6 +45,8 @@ const treeCrownMaterial = new THREE.MeshLambertMaterial({
 
 // Setting up the Scene
 const scene = new THREE.Scene()
+const startingScene = new THREE.Scene()
+const endingScene = new THREE.Scene()
 
 const playerCar = playerVehicleType == 'car' ? Car() : Truck()
 playerCar.position.x = -trackRadius
@@ -199,36 +202,29 @@ document.body.appendChild(labelRenderer.domElement)
 
 // CSS2D Objects for Health Over
 const heading = document.createElement('h1')
-heading.textContent = '-> Welcome to the Car Racing Game'
+heading.textContent = '->   Welcome to the Car Racing Game'
 
 const heading2 = document.createElement('h1')
-heading2.textContent = '-> Use the Arrow Keys to Control the Car'
+heading2.textContent = '->   Press Enter to Load the Game'
 
-// const button = document.createElement('input')
-// button.setAttribute('type', 'button')
-// button.setAttribute('ID', 'startGameButton')
-// button.setAttribute('value', 'Start Game')
+const heading3 = document.createElement('h1')
+heading3.textContent = '->   Press the Up Arrow Key to Start the Game'
+
+const heading4 = document.createElement('h1')
+heading4.textContent =
+  '->   Press Between 1, 2 & 3 to Toggle Between Various Cameras'
 
 const divEnter = document.createElement('div')
-divEnter.className = 'startGameClass'
+divEnter.id = 'startGameClass'
 divEnter.appendChild(heading)
 divEnter.appendChild(heading2)
-// divEnter.appendChild(button)
+divEnter.appendChild(heading3)
+divEnter.appendChild(heading4)
 
 const divEnterContainer = new CSS2DObject(divEnter)
-scene.add(divEnterContainer)
-divEnterContainer.position.set(0, 0, 0)
+startingScene.add(divEnterContainer)
 
-reset()
-
-// button.onclick = function () {
-//   if (ready) {
-//     ready = false
-//     alert('Game Chutiya hai!')
-//     divEnterContainer.position.set(-2000, 0, 0)
-//     renderer.setAnimationLoop(animation)
-//   }
-// }
+labelRenderer.render(selectScene(sceneType), camera)
 
 // Loading the 3D Human
 const loader = new GLTFLoader()
@@ -312,16 +308,15 @@ loader.load('human.glb', function (gltf) {
   human.translateX(185)
   scene.add(gltf.scene)
 })
-
-// Loading  the Feul Can
-// loader.load('fuel.glb', function (gltf) {
-//   let feul = gltf.scene.children[0]
-//   feul.scale.set(0.15, 0.15, 0.15)
-//   feul.rotateX(Math.PI / 2)
-//   feul.rotateZ(10)
-//   feul.translateX(185)
-//   scene.add(gltf.scene)
-// })
+let canBB
+loader.load('gas-can.glb', function (gltf) {
+  let can = gltf.scene.children[0]
+  can.scale.set(15, 15, 15)
+  can.rotateX(Math.PI / 2)
+  can.translateX(trackRadius)
+  canBB = new THREE.Box3().setFromObject(can)
+  scene.add(gltf.scene)
+})
 
 // Animating the Game Logic
 function reset() {
@@ -342,8 +337,7 @@ function reset() {
   })
   otherVehicles = []
 
-  renderer.render(scene, selectCamera(cameraType))
-  labelRenderer.render(scene, camera)
+  renderer.render(selectScene(sceneType), selectCamera(cameraType))
   ready = true
 }
 function startGame() {
@@ -354,12 +348,14 @@ function startGame() {
 }
 window.addEventListener('keydown', function (event) {
   if (event.key == 'Enter') {
-    divEnterContainer.position.set(-2000, 0, 0)
-    startGame()
+    sceneType = 2
+    document.getElementById('startGameClass').style.left = '1500px'
+    reset()
     return
   }
 
   if (event.key == 'ArrowUp') {
+    startGame()
     accelerate = true
     return
   }
@@ -426,9 +422,6 @@ function animation(timestamp) {
   movePlayerCar(timeDelta)
   playerCarBB = new THREE.Box3().setFromObject(playerCar)
 
-  if (timeValue > 6) {
-  }
-
   const laps = Math.floor(Math.abs(playerAngleMoved) / (Math.PI * 2))
 
   if (laps != score) {
@@ -443,9 +436,9 @@ function animation(timestamp) {
   moveOtherVehicles(timeDelta)
   collisionDetection()
 
-  renderer.render(scene, selectCamera(cameraType))
-  miniMapRenderer.render(scene, miniMapCamera)
-  reverseCameraRenderer.render(scene, carReverseCamera)
+  renderer.render(selectScene(sceneType), selectCamera(cameraType))
+  miniMapRenderer.render(selectScene(sceneType), miniMapCamera)
+  reverseCameraRenderer.render(selectScene(sceneType), carReverseCamera)
   lastTimeStamp = timestamp
 
   document.getElementById('healthValue').value = healthValue
@@ -461,6 +454,51 @@ function animation(timestamp) {
   if (distanceValue < 1) {
     distanceValue = 360
   }
+
+  gameOver()
+}
+function gameOver() {
+  if (healthValue <= 0 || fuelValue < 0) {
+    sceneType = 3
+    reset()
+    document.getElementById('healthText').style.display = 'none'
+    document.getElementById('healthValue').style.display = 'none'
+    document.getElementById('fuelText').style.display = 'none'
+    document.getElementById('fuelValue').style.display = 'none'
+    document.getElementById('scoreText').style.display = 'none'
+    document.getElementById('scoreValue').style.display = 'none'
+    document.getElementById('timeText').style.display = 'none'
+    document.getElementById('timeValue').style.display = 'none'
+    document.getElementById('DistanceText').style.display = 'none'
+    document.getElementById('distanceValue').style.display = 'none'
+
+    const divGameOver = document.createElement('div')
+    divGameOver.id = 'gameOver'
+    
+    const heading = document.createElement('h1')
+    heading.textContent = 'Game Over!'
+    
+    const heading2 = document.createElement('h1')
+    heading2.textContent = 'Your Total Score is '.concat(score)
+
+    const heading3 = document.createElement('h1')
+    heading3.textContent = 'Your Rank is 1'
+
+    divGameOver.appendChild(heading)
+    divGameOver.appendChild(heading2)
+    divGameOver.appendChild(heading3)
+
+    const divGameOverContainer = new CSS2DObject(divGameOver)
+    endingScene.add(divGameOverContainer)
+
+    const labelRenderer2 = new CSS2DRenderer()
+    labelRenderer2.setSize(window.innerWidth, window.innerHeight)
+    labelRenderer2.domElement.style.position = 'absolute'
+    labelRenderer2.domElement.style.top = '0px'
+    labelRenderer2.domElement.style.background = 'white'
+    document.body.appendChild(labelRenderer2.domElement)
+    labelRenderer2.render(endingScene, camera)
+  }
 }
 function collisionDetection() {
   for (let i = 0; i < countOtherVehicles; i++) {
@@ -468,6 +506,9 @@ function collisionDetection() {
     if (playerCarBB.intersectsBox(newBB)) {
       healthValue -= 0.5
     }
+  }
+  if (playerCarBB.intersectsBox(canBB)) {
+    fuelValue = 100
   }
 }
 function selectCamera(cameraType) {
@@ -529,9 +570,11 @@ function movePlayerCar(timeDelta) {
 }
 function getPlayerSpeed() {
   if (accelerate) {
+    fuelValue -= 0.05
     return speed * 2
   }
   if (decelerate) {
+    fuelValue += 0.05
     return speed * 0.5
   }
   return speed
@@ -883,6 +926,16 @@ window.addEventListener('resize', () => {
   // Reset renderer
   renderer.setSize(window.innerWidth, window.innerHeight)
   labelRenderer.setSize(window.innerWidth, window.innerHeight)
-  renderer.render(scene, selectCamera(cameraType))
-  labelRenderer.render(scene, camera)
+  renderer.render(selectScene(sceneType), selectCamera(cameraType))
+  labelRenderer.render(selectScene(sceneType), camera)
 })
+
+function selectScene(sceneType) {
+  if (sceneType == 1) {
+    return startingScene
+  }
+  if (sceneType == 2) {
+    return scene
+  }
+  return scene
+}
