@@ -19,21 +19,22 @@ let playerAngleMoved
 let playerCarRadius = trackRadius
 let playerCarBB
 const speed = 0.0005
-let score
+var score = 0
 let countOtherVehicles = 0
 let otherVehicles = []
 let lastTimeStamp
 let accelerate = false
 let decelerate = false
 let cameraType = 0
-let playerVehicleType = 'car'
 let sceneType = 1
+let otherVehicleLaps = []
 
 // Player Stats
 let healthValue = 100
 let fuelValue = 100
 let timeValue = 0
 let distanceValue = 360
+let retainScoreValue = 0
 
 const treeTrunkGeometry = new THREE.BoxGeometry(15, 15, 75)
 const treeTrunkMaterial = new THREE.MeshLambertMaterial({
@@ -48,7 +49,7 @@ const scene = new THREE.Scene()
 const startingScene = new THREE.Scene()
 const endingScene = new THREE.Scene()
 
-const playerCar = playerVehicleType == 'car' ? Car() : Truck()
+const playerCar = Car()
 playerCar.position.x = -trackRadius
 playerCar.position.y = 0
 playerCar.rotation.z = Math.PI / 2
@@ -426,6 +427,21 @@ function animation(timestamp) {
 
   if (laps != score) {
     score = laps
+    retainScoreValue = score
+  }
+
+  if (timeValue % 6.0 >= 0 && timeValue % 6.0 <= 0.01) {
+    for (let i = 0; i < countOtherVehicles; i++) {
+      if (otherVehicles[i].speed > 1) {
+        otherVehicleLaps[i] += 1
+      }
+    }
+  } else if (timeValue % 10.0 >= 0 && timeValue % 10.0 <= 0.01) {
+    for (let i = 0; i < countOtherVehicles; i++) {
+      if (otherVehicles[i].speed < 1) {
+        otherVehicleLaps[i] += 1
+      }
+    }
   }
 
   // Add a New Element Every 3nd Lap
@@ -446,7 +462,6 @@ function animation(timestamp) {
   document.getElementById('scoreValue').innerHTML = score
   document.getElementById('timeValue').innerHTML = timeValue.toFixed(2)
   document.getElementById('distanceValue').innerHTML = distanceValue
-
   fuelValue -= 0.1
   timeValue += 0.01
   // distanceValue -= 1
@@ -459,7 +474,6 @@ function animation(timestamp) {
 }
 function gameOver() {
   if (healthValue <= 0 || fuelValue < 0) {
-    sceneType = 3
     reset()
     document.getElementById('healthText').style.display = 'none'
     document.getElementById('healthValue').style.display = 'none'
@@ -474,19 +488,24 @@ function gameOver() {
 
     const divGameOver = document.createElement('div')
     divGameOver.id = 'gameOver'
-    
+
     const heading = document.createElement('h1')
     heading.textContent = 'Game Over!'
-    
-    const heading2 = document.createElement('h1')
-    heading2.textContent = 'Your Total Score is '.concat(score)
 
-    const heading3 = document.createElement('h1')
-    heading3.textContent = 'Your Rank is 1'
+    const heading2 = document.createElement('h1')
+    heading2.textContent = 'Your Score is ' + retainScoreValue
+
+    otherVehicleLaps.push(retainScoreValue)
+    otherVehicleLaps.sort
+    let rank =
+      countOtherVehicles - otherVehicleLaps.indexOf(retainScoreValue) + 1
+
+    const heading4 = document.createElement('h1')
+    heading4.textContent = 'Your Rank is ' + rank
 
     divGameOver.appendChild(heading)
     divGameOver.appendChild(heading2)
-    divGameOver.appendChild(heading3)
+    divGameOver.appendChild(heading4)
 
     const divGameOverContainer = new CSS2DObject(divGameOver)
     endingScene.add(divGameOverContainer)
@@ -594,6 +613,7 @@ function addVehicle() {
   const pathRadius = getRandomNumber(80, 160)
 
   countOtherVehicles += 1
+  otherVehicleLaps.push(-1)
   otherVehicles.push({ mesh, type, clockwise, angle, speed, pathRadius })
 }
 function getVehicleSpeed(type) {
