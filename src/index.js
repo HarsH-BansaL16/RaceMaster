@@ -350,7 +350,7 @@ function startGame() {
 window.addEventListener('keydown', function (event) {
   if (event.key == 'Enter') {
     sceneType = 2
-    document.getElementById('startGameClass').style.left = '1500px'
+    document.getElementById('startGameClass').style.left = '15000px'
     reset()
     return
   }
@@ -466,6 +466,10 @@ function animation(timestamp) {
   timeValue += 0.01
   distanceValue -= 0.5
 
+  if (distanceValue < 0) {
+    distanceValue = 360
+  }
+
   gameOver()
 }
 function gameOver() {
@@ -524,7 +528,7 @@ function collisionDetection() {
   }
   if (playerCarBB.intersectsBox(canBB)) {
     fuelValue = 100
-    distanceValue = 360
+    distanceValue = 370
   }
 }
 function selectCamera(cameraType) {
