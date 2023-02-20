@@ -33,7 +33,7 @@ let otherVehicleLaps = []
 let healthValue = 100
 let fuelValue = 100
 let timeValue = 0
-let distanceValue = 360
+let distanceValue = 180
 let retainScoreValue = 0
 
 const treeTrunkGeometry = new THREE.BoxGeometry(15, 15, 75)
@@ -464,11 +464,7 @@ function animation(timestamp) {
   document.getElementById('distanceValue').innerHTML = distanceValue
   fuelValue -= 0.1
   timeValue += 0.01
-  // distanceValue -= 1
-
-  if (distanceValue < 1) {
-    distanceValue = 360
-  }
+  distanceValue -= 0.5
 
   gameOver()
 }
@@ -528,6 +524,7 @@ function collisionDetection() {
   }
   if (playerCarBB.intersectsBox(canBB)) {
     fuelValue = 100
+    distanceValue = 360
   }
 }
 function selectCamera(cameraType) {
@@ -589,10 +586,12 @@ function movePlayerCar(timeDelta) {
 }
 function getPlayerSpeed() {
   if (accelerate) {
+    distanceValue -= 0.5
     fuelValue -= 0.05
     return speed * 2
   }
   if (decelerate) {
+    distanceValue += 0.5
     fuelValue += 0.05
     return speed * 0.5
   }
