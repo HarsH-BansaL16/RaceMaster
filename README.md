@@ -1,20 +1,18 @@
-## Three.js with webpack
+## RaceMaster
 
-Install following
-
+- Install following to Run the Game
 ```
 npm install three
 npm install webpack
 sudo npm -g install servez
 ```
 
-run following when you change something in any file
-
+- Run the Following to Compile the Game
 ```
 npx webpack --config webpack.config.js
 ```
-To start the server
-
+- Run the Following to Start the Server and Run the Game
 ```
 servez .
 ```
+- Go to ```http://localhost:8080``` and Click on ```dist/``` to Play the Game
